@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Los primeros 25 Pokémon</title>
+    <style>
+      :root {
+        --bg: #f5f7fb;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --accent: #ef4444;
+        --accent-2: #f59e0b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #fef2f2 0%, #eff6ff 100%);
+        color: var(--text);
+      }
+
+      header {
+        text-align: center;
+        padding: 2rem 1rem 1rem;
+      }
+
+      header h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 3vw, 2.6rem);
+      }
+
+      header p {
+        color: var(--muted);
+        max-width: 700px;
+        margin: 0.7rem auto 0;
+        line-height: 1.6;
+      }
+
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem 1rem 2rem;
+      }
+
+      .pokemon-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+
+      .card {
+        background: var(--card);
+        border-radius: 18px;
+        padding: 1rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        text-align: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 34px rgba(0, 0, 0, 0.12);
+      }
+
+      .number {
+        display: inline-block;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        color: white;
+        padding: 0.35rem 0.7rem;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 0.7rem;
+      }
+
+      img {
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        margin: 0.2rem 0 0.6rem;
+      }
+
+      h2 {
+        margin: 0.2rem 0 0.4rem;
+        font-size: 1.1rem;
+      }
+
+      .type {
+        color: var(--accent);
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+      }
+
+      .description {
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Los primeros 25 Pokémon de la Pokédex</h1>
+      <p>
+        Aquí encontrarás una muestra de los Pokémon iniciales y los primeros combatientes
+        de la historia de la franquicia, desde Bulbasaur hasta Pikachu.
+      </p>
+    </header>
+
+    <main>
+      <section id="pokemon-grid" class="pokemon-grid"></section>
+    </main>
+
+    <script>
+      const pokemons = [
+        { id: 1, name: "Bulbasaur", type: "Planta / Veneno", description: "El Pokémon inicial de tipo planta con una muestra de energía natural." },
+        { id: 2, name: "Ivysaur", type: "Planta / Veneno", description: "Un crecimiento más fuerte y con una mayor presencia en combate." },
+        { id: 3, name: "Venusaur", type: "Planta / Veneno", description: "Su gran tamaño y su poder lo convierten en un gigante del campo." },
+        { id: 4, name: "Charmander", type: "Fuego", description: "Pequeño y enérgico, su llama representa su vitalidad." },
+        { id: 5, name: "Charmeleon", type: "Fuego", description: "Más agresivo y rápido, destaca por su intensidad." },
+        { id: 6, name: "Charizard", type: "Fuego / Volador", description: "Un legendario de alas poderosas y presencia imponente." },
+        { id: 7, name: "Squirtle", type: "Agua", description: "El inicio de la familia de tortugas acuáticas y muy querido." },
+        { id: 8, name: "Wartortle", type: "Agua", description: "Más robusto y con una defensa notable en batalla." },
+        { id: 9, name: "Blastoise", type: "Agua", description: "Conca de poder y una defensa muy alta, es un tanque clásico." },
+        { id: 10, name: "Caterpie", type: "Bicho", description: "Un Pokémon pequeño que se mueve con mucha facilidad." },
+        { id: 11, name: "Metapod", type: "Bicho", description: "En esta etapa se prepara para su evolución." },
+        { id: 12, name: "Butterfree", type: "Bicho / Volador", description: "Con alas brillantes y mucha agilidad, es muy reconocible." },
+        { id: 13, name: "Weedle", type: "Bicho / Veneno", description: "Un pequeño invasor del bosque que se defiende con aguijón." },
+        { id: 14, name: "Kakuna", type: "Bicho / Veneno", description: "Espera en silencio mientras se prepara para evolucionar." },
+        { id: 15, name: "Beedrill", type: "Bicho / Veneno", description: "Rápido y agresivo, su ataque es muy efectivo." },
+        { id: 16, name: "Pidgey", type: "Normal / Volador", description: "Pequeño y curioso, muy común en los cielos." },
+        { id: 17, name: "Pidgeotto", type: "Normal / Volador", description: "Más fuerte y con mayor control del aire." },
+        { id: 18, name: "Pidgeot", type: "Normal / Volador", description: "Un maestro de los cielos con gran velocidad." },
+        { id: 19, name: "Rattata", type: "Normal", description: "Ágil y muy común, destaca por su rapidez." },
+        { id: 20, name: "Raticate", type: "Normal", description: "Un poco más grande y fuerte que su predecesor." },
+        { id: 21, name: "Spearow", type: "Normal / Volador", description: "Pequeño pero muy insistente en el combate." },
+        { id: 22, name: "Fearow", type: "Normal / Volador", description: "Con un pico largo y gran capacidad de vuelo." },
+        { id: 23, name: "Ekans", type: "Veneno", description: "Una serpiente sigilosa conocida por su intimidación." },
+        { id: 24, name: "Arbok", type: "Veneno", description: "Su presencia es más imponente y temible." },
+        { id: 25, name: "Pikachu", type: "Eléctrico", description: "El Pokémon más icónico de todos, famoso por su energía eléctrica." }
+      ];
+
+      const grid = document.getElementById("pokemon-grid");
+
+      grid.innerHTML = pokemons
+        .map(
+          (pokemon) => `
+            <article class="card">
+              <span class="number">#${String(pokemon.id).padStart(3, "0")}</span>
+              <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png" alt="${pokemon.name}" loading="lazy" />
+              <h2>${pokemon.name}</h2>
+              <p class="type">${pokemon.type}</p>
+              <p class="description">${pokemon.description}</p>
+            </article>
+          `
+        )
+        .join("");
+    </script>
+  </body>
+</html>
