@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokédex - Los primeros 25 Pokémon</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, sans-serif; background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%); color: #e0e0e0; min-height: 100vh; }
+    header { text-align: center; padding: 2rem 1rem; border-bottom: 2px solid #2a4a7a; }
+    header h1 { margin: 0; font-size: 2.5rem; color: #4fd0ff; text-shadow: 0 0 15px rgba(79, 208, 255, 0.6); font-weight: 900; }
+    header p { color: #a0b0d0; max-width: 700px; margin: 0.7rem auto 0; font-size: 1.05rem; }
+    main { max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
+    .pokemon-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.2rem; }
+    .card { background: linear-gradient(135deg, #1a2a5a 0%, #0f1f4a 100%); border-radius: 18px; padding: 1.2rem; box-shadow: 0 8px 25px rgba(79, 208, 255, 0.1), inset 0 1px 0 rgba(79, 208, 255, 0.2); text-align: center; cursor: pointer; transition: all 0.3s ease; border: 2px solid #2a4a7a; }
+    .card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 15px 40px rgba(79, 208, 255, 0.25), inset 0 1px 0 rgba(79, 208, 255, 0.3); border-color: #4fd0ff; }
+    .number { display: inline-block; background: linear-gradient(90deg, #ef4444, #f59e0b); color: white; padding: 0.35rem 0.8rem; border-radius: 999px; font-weight: 700; font-size: 0.9rem; margin-bottom: 0.8rem; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+    .pokemon-image { width: 140px; height: 140px; margin: 0 auto 0.8rem; display: block; image-rendering: pixelated; filter: drop-shadow(0 0 5px rgba(79, 208, 255, 0.3)); }
+    .card h2 { margin: 0.5rem 0 0.3rem; font-size: 1.2rem; color: #4fd0ff; text-transform: capitalize; }
+    .type { color: #ff9d5c; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem; }
+    .description { color: #a0b0d0; font-size: 0.9rem; line-height: 1.5; min-height: 2.7rem; }
+    
+    .modal-overlay { position: fixed; inset: 0; background: rgba(10, 14, 39, 0.97); display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 1000; overflow-y: auto; backdrop-filter: blur(3px); }
+    .modal-overlay.active { display: flex; }
+    .modal-dialog { background: linear-gradient(135deg, #1a2a5a 0%, #0f1f4a 100%); width: min(900px, 100%); max-height: 95vh; overflow-y: auto; border-radius: 24px; padding: 2rem; box-shadow: 0 20px 60px rgba(79, 208, 255, 0.3), inset 0 1px 0 rgba(79, 208, 255, 0.2); position: relative; border: 2px solid #2a4a7a; }
+    .modal-close { position: absolute; top: 1rem; right: 1rem; border: 2px solid #4fd0ff; background: rgba(79, 208, 255, 0.1); border-radius: 50%; width: 42px; height: 42px; font-size: 1.5rem; cursor: pointer; color: #4fd0ff; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
+    .modal-close:hover { background: rgba(79, 208, 255, 0.2); transform: rotate(90deg); }
+    .modal-header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .pokemon-image-modal { width: 160px; height: 160px; display: block; image-rendering: pixelated; filter: drop-shadow(0 0 8px rgba(79, 208, 255, 0.4)); }
+    .modal-title { margin: 0; font-size: 2rem; color: #4fd0ff; text-transform: capitalize; text-shadow: 0 0 10px rgba(79, 208, 255, 0.3); }
+    .modal-subtitle { color: #a0b0d0; margin: 0.3rem 0 0; font-size: 1.05rem; }
+    
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+    .info-box { background: linear-gradient(135deg, rgba(79, 208, 255, 0.1) 0%, rgba(79, 208, 255, 0.05) 100%); padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid #2a5a8a; }
+    .info-label { font-size: 0.75rem; color: #a0b0d0; text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: 1px; }
+    .info-value { font-size: 1.3rem; font-weight: 700; color: #4fd0ff; }
+    
+    .competitive-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+    .competitive-box { background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 208, 255, 0.05) 100%); padding: 0.9rem; border-radius: 12px; border: 1px solid #2a4a7a; }
+    .competitive-box label { font-size: 0.75rem; color: #a0b0d0; text-transform: uppercase; margin-bottom: 0.4rem; display: block; font-weight: 700; }
+    .competitive-box value { font-size: 1rem; font-weight: 600; color: #4fd0ff; }
+    
+    .tier-badge { display: inline-block; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin: 0.4rem 0.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+    .tier-lc { background: linear-gradient(135deg, #fce7f3, #fcb5d9); color: #ec0080; }
+    .tier-nu { background: linear-gradient(135deg, #fef3c7, #fde047); color: #ca8a04; }
+    .tier-uu { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e40af; }
+    .tier-ou { background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #166534; }
+    .tier-ubers { background: linear-gradient(135deg, #f3e8ff, #e9d5ff); color: #7c3aed; }
+    
+    .role-badge { display: inline-block; background: rgba(79, 208, 255, 0.15); color: #4fd0ff; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; margin: 0.3rem 0.2rem; border: 1px solid #4fd0ff; }
+    .difficulty-indicator { display: inline-block; margin: 0.5rem 0; }
+    .difficulty-indicator span { color: #a0b0d0; font-size: 0.9rem; }
+    .difficulty-star { color: #fbbf24; font-size: 1.1rem; }
+    
+    .section-title { font-size: 1.05rem; font-weight: 800; margin: 1.5rem 0 0.8rem; border-bottom: 2px solid #2a4a7a; padding-bottom: 0.6rem; color: #4fd0ff; text-transform: uppercase; letter-spacing: 1px; }
+    
+    .stat-item { margin-bottom: 1rem; }
+    .stat-name { display: flex; justify-content: space-between; margin-bottom: 0.4rem; font-size: 0.95rem; font-weight: 600; color: #e0e0e0; }
+    .stat-bar { width: 100%; height: 10px; background: rgba(79, 208, 255, 0.1); border-radius: 5px; overflow: hidden; border: 1px solid #2a4a7a; }
+    .stat-fill { height: 100%; border-radius: 4px; }
+    .stat-fill.low { background: linear-gradient(90deg, #ef4444, #dc2626); }
+    .stat-fill.medium { background: linear-gradient(90deg, #f59e0b, #d97706); }
+    .stat-fill.high { background: linear-gradient(90deg, #10b981, #059669); }
+    
+    .evolution-info, .trivia-info { padding: 1rem; border-radius: 12px; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem; }
+    .evolution-info { background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.05) 100%); border-left: 4px solid #f59e0b; color: #e0e0e0; }
+    .trivia-info { background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%); border-left: 4px solid #3b82f6; color: #e0e0e0; }
+    
+    .strengths-list, .weaknesses-list, .moves-list, .items-list { margin: 0; padding-left: 1.5rem; list-style: none; }
+    .strengths-list li, .weaknesses-list li, .moves-list li, .items-list li { font-size: 0.95rem; padding: 0.4rem 0; color: #e0e0e0; }
+    .strengths-list li::before { content: "✓ "; color: #10b981; font-weight: bold; }
+    .strengths-list li { color: #a0e0a0; }
+    .weaknesses-list li::before { content: "✗ "; color: #ff6b6b; font-weight: bold; }
+    .weaknesses-list li { color: #ff9999; }
+    .moves-list li::before { content: "• "; color: #4fd0ff; }
+    .items-list li::before { content: "⭐ "; color: #fbbf24; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⚡ POKÉDEX ⚡</h1>
+    <p>Los primeros 25 Pokémon con análisis competitivo detallado</p>
+  </header>
+
+  <main>
+    <section id="pokemon-grid" class="pokemon-grid"></section>
+  </main>
+
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal-dialog">
+      <button id="modal-close" class="modal-close">✕</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <script>
+    const pokemons = [
+      { id: 1, name: "Bulbasaur", type: "Planta / Veneno", description: "El Pokémon inicial de tipo planta con poder de síntesis." },
+      { id: 2, name: "Ivysaur", type: "Planta / Veneno", description: "Evolución de Bulbasaur con poder florido mejorado." },
+      { id: 3, name: "Venusaur", type: "Planta / Veneno", description: "Forma final que controla el campo de batalla." },
+      { id: 4, name: "Charmander", type: "Fuego", description: "Pequeño dragón ígneo con fuego en su cola." },
+      { id: 5, name: "Charmeleon", type: "Fuego", description: "Temperamental y cada vez más agresivo." },
+      { id: 6, name: "Charizard", type: "Fuego / Volador", description: "Maestro del fuego y los cielos, legendario." },
+      { id: 7, name: "Squirtle", type: "Agua", description: "Tortuga acuática con caparazón protector." },
+      { id: 8, name: "Wartortle", type: "Agua", description: "Defensor acuático más fuerte y robusto." },
+      { id: 9, name: "Blastoise", type: "Agua", description: "Tanque defensivo con cañones de agua." },
+      { id: 10, name: "Caterpie", type: "Bicho", description: "Pequeña oruga que se alimenta de hojas." },
+      { id: 11, name: "Metapod", type: "Bicho", description: "Crisálida defensiva en transformación." },
+      { id: 12, name: "Butterfree", type: "Bicho / Volador", description: "Mariposa ágil con polvos mágicos." },
+      { id: 13, name: "Weedle", type: "Bicho / Veneno", description: "Pequeño invasor de bosques con veneno." },
+      { id: 14, name: "Kakuna", type: "Bicho / Veneno", description: "Cáscara muy resistente lista para evolucionar." },
+      { id: 15, name: "Beedrill", type: "Bicho / Veneno", description: "Agresivo atacante con espinas venenosas." },
+      { id: 16, name: "Pidgey", type: "Normal / Volador", description: "Ave común que habita en los cielos." },
+      { id: 17, name: "Pidgeotto", type: "Normal / Volador", description: "Mayor control del aire que Pidgey." },
+      { id: 18, name: "Pidgeot", type: "Normal / Volador", description: "Soberano de los cielos extremadamente rápido." },
+      { id: 19, name: "Rattata", type: "Normal", description: "Roedor ágil extremadamente veloz." },
+      { id: 20, name: "Raticate", type: "Normal", description: "Roedor grande e inteligente cazador." },
+      { id: 21, name: "Spearow", type: "Normal / Volador", description: "Pequeño pájaro territorial agresivo." },
+      { id: 22, name: "Fearow", type: "Normal / Volador", description: "Cazador aéreo con pico precisión." },
+      { id: 23, name: "Ekans", type: "Veneno", description: "Serpiente venenosa sigilosa." },
+      { id: 24, name: "Arbok", type: "Veneno", description: "Depredador letal con patrones hipnóticos." },
+      { id: 25, name: "Pikachu", type: "Eléctrico", description: "El Pokémon más icónico de todos los tiempos." }
+    ];
+
+    const detailsById = {
+      1: { 
+        stats: { HP: 45, Ataque: 49, Defensa: 49, "Ataque Esp.": 65, "Defensa Esp.": 65, Velocidad: 45 }, 
+        moves: ["Placaje", "Latigazo", "Bomba Germen", "Drenadoras"], 
+        competitiveItems: ["Leftovers", "Tierra Sucia", "Faja Resistencia", "Cristal Asalto"], 
+        peso: "6.9 kg", 
+        altura: "0.71 m", 
+        evolucion: "Evoluciona a Ivysaur a nivel 16", 
+        trivia: "Bulbasaur nace con una semilla en su espalda que crece a medida que se desarrolla.",
+        ability: "Maleza",
+        nature: "Modesto",
+        evs: "252 Ataque Esp. / 4 Def. Esp. / 252 Velocidad",
+        role: "Especial Atacante",
+        tier: "LC",
+        difficulty: 2,
+        strengths: ["Buenas ofensivas especiales", "Buena cobertura de tipos", "Excelente en switches"],
+        weaknesses: ["Débil a ataques físicos", "Velocidad moderada", "Dependiente de EV training"]
+      },
+      2: { 
+        stats: { HP: 60, Ataque: 62, Defensa: 63, "Ataque Esp.": 80, "Defensa Esp.": 80, Velocidad: 60 }, 
+        moves: ["Placaje", "Rayo Solar", "Bomba Germen", "Poder Pasado"], 
+        competitiveItems: ["Leftovers", "Coraza Asalto", "Choice Specs", "Tierra Sucia"], 
+        peso: "13 kg", 
+        altura: "0.99 m", 
+        evolucion: "Evoluciona a Venusaur a nivel 32", 
+        trivia: "La flor en su espalda brilla cuando absorbe energía solar.",
+        ability: "Maleza",
+        nature: "Modesto",
+        evs: "252 Ataque Esp. / 4 Def. Esp. / 252 Velocidad",
+        role: "Especial Atacante",
+        tier: "NU",
+        difficulty: 2,
+        strengths: ["Buena defensa especial", "Movimientos de tipo planta poderosos", "Resistencias útiles"],
+        weaknesses: ["Lentitud relativa", "Debilidad a fuego", "Vulnerable en switches"]
+      },
+      3: { 
+        stats: { HP: 80, Ataque: 82, Defensa: 83, "Ataque Esp.": 100, "Defensa Esp.": 100, Velocidad: 80 }, 
+        moves: ["Rayo Solar", "Gigadrenado", "Terremoto", "Sombra Vil"], 
+        competitiveItems: ["Leftovers", "Peto Asalto", "Cristal Vida", "Roca Suave"], 
+        peso: "100 kg", 
+        altura: "2.03 m", 
+        evolucion: "Forma final - No evoluciona más", 
+        trivia: "Venusaur usa la fotosíntesis para conservar energía.",
+        ability: "Maleza",
+        nature: "Moderado",
+        evs: "252 Ataque Esp. / 4 Def. Esp. / 252 Velocidad",
+        role: "Especial Atacante / Pivot",
+        tier: "UU",
+        difficulty: 3,
+        strengths: ["Excelentes defensas", "Amplio moveset", "Buena presencia ofensiva"],
+        weaknesses: ["Lento", "Debilidad a volador y fuego", "Requiere setup de clima"]
+      },
+      4: { 
+        stats: { HP: 39, Ataque: 52, Defensa: 43, "Ataque Esp.": 60, "Defensa Esp.": 50, Velocidad: 65 }, 
+        moves: ["Ascuas", "Arañazo", "Lanzallamas", "Colmillo Ígneo"], 
+        competitiveItems: ["Peto Asalto", "Faja Resistencia", "Life Orb", "Choice Scarf"], 
+        peso: "8.5 kg", 
+        altura: "0.61 m", 
+        evolucion: "Evoluciona a Charmeleon a nivel 16", 
+        trivia: "La llama en su cola refleja su salud.",
+        ability: "Fuego Ardiente",
+        nature: "Tímido",
+        evs: "252 Ataque Esp. / 4 Def. Esp. / 252 Velocidad",
+        role: "Especial Atacante",
+        tier: "LC",
+        difficulty: 2,
+        strengths: ["Buena velocidad", "Excelente especial ataque", "Cobertura de movimientos"],
+        weaknesses: ["Baja defensa", "Frágil ante agua", "Dependencia de items"]
+      },
+      5: { 
+        stats: { HP: 58, Ataque: 64, Defensa: 58, "Ataque Esp.": 80, "Defensa Esp.": 65, Velocidad: 80 }, 
+        moves: ["Ascuas", "Corte Furia", "Lanzallamas", "Golpe Roca"], 
+        competitiveItems: ["Choice Specs", "Leftovers", "Orbe Vida", "Peto Asalto"], 
+        peso: "19 kg", 
+        altura: "1.09 m", 
+        evolucion: "Evoluciona a Charizard a nivel 36", 
+        trivia: "Charmeleon es muy temperamental.",
+        ability: "Fuego Ardiente",
+        nature: "Tímido",
+        evs: "252 Ataque Esp. / 4 Def. Esp. / 252 Velocidad",
+        role: "Especial Atacante",
+        tier: "NU",
+        difficulty: 2,
+        strengths: ["Velocidad decente", "Movimientos tipo fuego poderosos", "Buena presión offensiva"],
+        weaknesses: ["Defensa moderada", "Múltiples debilidades", "Requiere evo-stone"]
+      },
+      6: { 
+        stats: { HP: 78, Ataque: 84, Defensa: 78, "Ataque Esp.": 109, "Defensa Esp.": 85, Velocidad: 100 }, 
+        moves: ["Lanzallamas", "Danza Dragón", "Viento Aciago", "Tajo Aéreo"], 
+        competitiveItems: ["Leftovers", "Choice Specs", "Orbe Asalto", "Rocky Helmet"], 
+        peso: "90.5 kg", 
+        altura: "1.7 m", 
+        evolucion: "Forma final - No evoluciona más", 
+        trivia: "Charizard busca combates con otros Charizard.",
+        ability: "Fuego Ardiente",
+        nature: "Modesto",
+        evs: "252 Ataque Esp. / 4 Def. Esp. / 252 Velocidad",
+        role: "Especial Atacante / Barredor",
+        tier: "OU",
+        difficulty: 3,
+        strengths: ["Excelente velocidad", "Poderosos movimientos especiales", "Buen bulk defensivo"],
+        weaknesses: ["Debilidades comunes", "Requiere configuración de stats", "Depende del moveset"]
+      },
+      7: { 
+        stats: { HP: 44, Ataque: 48, Defensa: 65, "Ataque Esp.": 50, "Defensa Esp.": 64, Velocidad: 43 }, 
+        moves: ["Pistola Agua", "Burbuja", "Hidrobomba", "Refugio"], 
+        competitiveItems: ["Peto Asalto", "Leftovers", "Cristal Vida", "Faja Resistencia"], 
+        peso: "9 kg", 
+        altura: "0.51 m", 
+        evolucion: "Evoluciona a Wartortle a nivel 16", 
+        trivia: "Squirtle se retrae completamente en su caparazón.",
+        ability: "Torrente",
+        nature: "Tranquilo",
+        evs: "252 Def. / 4 Ataque Esp. / 252 Def. Esp.",
+        role: "Tanque / Apoyo",
+        tier: "LC",
+        difficulty: 2,
+        strengths: ["Buena defensa", "Movimientos de agua útiles", "Resistencias defensivas"],
+        weaknesses: ["Baja velocidad", "Débil a pasto y eléctrico", "Dependencia de items"]
+      },
+      8: { 
+        stats: { HP: 59, Ataque: 63, Defensa: 80, "Ataque Esp.": 65, "Defensa Esp.": 80, Velocidad: 58 }, 
+        moves: ["Pistola Agua", "Hidrobomba", "Golpe Roca", "Refugio"], 
+        competitiveItems: ["Leftovers", "Rocky Helmet", "Peto Asalto", "Cristal Vida"], 
+        peso: "22.5 kg", 
+        altura: "0.99 m", 
+        evolucion: "Evoluciona a Blastoise a nivel 36", 
+        trivia: "Wartortle tiene orejas sensibles.",
+        ability: "Torrente",
+        nature: "Tranquilo",
+        evs: "252 Def. / 4 Ataque Esp. / 252 Def. Esp.",
+        role: "Tanque",
+        tier: "NU",
+        difficulty: 2,
+        strengths: ["Buenas defensas", "Excelente resistencia", "Versatilidad de movimientos"],
+        weaknesses: ["Lentitud", "Débil a pasto/eléctrico", "Ataque especial limitado"]
+      },
+      9: { 
+        stats: { HP: 79, Ataque: 83, Defensa: 100, "Ataque Esp.": 85, "Defensa Esp.": 105, Velocidad: 78 }, 
+        moves: ["Hidrobomba", "Surf", "Gigadrenado", "Canto"], 
+        competitiveItems: ["Leftovers", "Rocky Helmet", "Cristal Vida", "Coraza Asalto"], 
+        peso: "85.5 kg", 
+        altura: "1.63 m", 
+        evolucion: "Forma final - No evoluciona más", 
+        trivia: "Blastoise puede disparar agua a 10,000 psi.",
+        ability: "Torrente",
+        nature: "Tranquilo",
+        evs: "252 Def. / 4 Ataque Esp. / 252 Def. Esp.",
+        role: "Tanque especial / Apoyo",
+        tier: "UU",
+        difficulty: 3,
+        strengths: ["Defensa especial excelente", "Buen bulk físico", "Presión defensiva"],
+        weaknesses: ["Lentitud", "Debilidades comunes", "Requiere EV training"]
+      },
+      10: { 
+        stats: { HP: 45, Ataque: 30, Defensa: 35, "Ataque Esp.": 20, "Defensa Esp.": 20, Velocidad: 45 }, 
+        moves: ["Placaje", "Disparo Lodo", "Sigilo"], 
+        competitiveItems: ["Focus Sash", "Faja Resistencia", "Orbe Asalto", "Peto Asalto"], 
+        peso: "2.9 kg", 
+        altura: "0.3 m", 
+        evolucion: "Evoluciona a Metapod a nivel 7", 
+        trivia: "Caterpie es una oruga muy común.",
+        ability: "Muda",
+        nature: "Alegre",
+        evs: "252 Velocidad / 252 Ataque / 4 HP",
+        role: "Scout",
+        tier: "LC",
+        difficulty: 1,
+        strengths: ["Velocidad decente", "Movimientos de golpe rápido", "Buen inicio"],
+        weaknesses: ["Estadísticas bajas", "Poca resistencia", "Débil a muchos tipos"]
+      },
+      11: { 
+        stats: { HP: 50, Ataque: 20, Defensa: 55, "Ataque Esp.": 25, "Defensa Esp.": 25, Velocidad: 30 }, 
+        moves: ["Guardia", "Endurecer", "Protección"], 
+        competitiveItems: ["Cristal Vida", "Tierra Sucia", "Faja Resistencia", "Peto Asalto"], 
+        peso: "9.9 kg", 
+        altura: "0.71 m", 
+        evolucion: "Evoluciona a Butterfree a nivel 10", 
+        trivia: "Metapod permanece quieto durante su metamorfosis.",
+        ability: "Muda",
+        nature: "Cauteloso",
+        evs: "252 Defensa / 252 Def. Esp. / 4 HP",
+        role: "Pared de Defensa",
+        tier: "LC",
+        difficulty: 1,
+        strengths: ["Defensa alta", "Movimientos de protección", "Resistencia física"],
+        weaknesses: ["Ataque muy bajo", "Lento", "Poca presión ofensiva"]
+      },
+      12: { 
+        stats: { HP: 60, Ataque: 45, Defensa: 50, "Ataque Esp.": 90, "Defensa Esp.": 80, Velocidad: 70 }, 
+        moves: ["Confuso", "Poder Pasado", "Rayo", "Aire Afilado"], 
+        competitiveItems: ["Choice Specs", "Leftovers", "Orbe Vida", "Faja Resistencia"], 
+        peso: "32 kg", 
+        altura: "1.09 m", 
+        evolucion: "Forma final - No evoluciona más", 
+        trivia: "Butterfree puede volar miles de millas.",
+        ability: "Ojo Compuesto",
+        nature: "Modesto",
+        evs: "252 Ataque Esp. / 4 Def. Esp. / 252 Velocidad",
+        role: "Especial Atacante / Barredor",
+        tier: "NU",
+        difficulty: 3,
+        strengths: ["Buena velocidad", "Ataque especial decente", "Movimientos variados"],
+        weaknesses: ["Baja defensa", "Débil a ataques físicos", "Falta de cobertura"]
+      },
+      13: { 
+        stats: { HP: 40, Ataque: 35, Defensa: 30, "Ataque Esp.": 20, "Defensa Esp.": 20, Velocidad: 50 }, 
+        moves: ["Picotazo", "Aguijón", "Sigilo"], 
+        competitiveItems: ["Focus Sash", "Peto Asalto", "Orbe Vida", "Tierra Sucia"], 
+        peso: "3.2 kg", 
+        altura: "0.3 m", 
+        evolucion: "Evoluciona a Kakuna a nivel 7", 
+        trivia: "Weedle come hojas constantemente.",
+        ability: "Veneno en Polvo",
+        nature: "Tímido",
+        evs: "252 Velocidad / 252 Ataque Esp. / 4 Def. Esp.",
+        role: "Scout",
+        tier: "LC",
+        difficulty: 1,
+        strengths: ["Velocidad decente", "Movimientos de bicho", "Tamaño pequeño"],
+        weaknesses: ["Estadísticas muy bajas", "Poca presión", "Frágil"]
+      },
+      14: { 
+        stats: { HP: 45, Ataque: 25, Defensa: 50, "Ataque Esp.": 25, "Defensa Esp.": 25, Velocidad: 35 }, 
+        moves: ["Guardia", "Endurecer", "Protección"], 
+        competitiveItems: ["Cristal Vida", "Peto Asalto", "Tierra Sucia", "Coraza Asalto"], 
+        peso: "10 kg", 
+        altura: "0.61 m", 
+        evolucion: "Evoluciona a Beedrill a nivel 10", 
+        trivia: "Kakuna está casi inmóvil durante su evolución.",
+        ability: "Muda",
+        nature: "Cauteloso",
+        evs: "252 Defensa / 252 Def. Esp. / 4 HP",
+        role: "Pared de Defensa",
+        tier: "LC",
+        difficulty: 1,
+        strengths: ["Defensa media", "Resistencia a ataques", "Pokémon de transición"],
+        weaknesses: ["Muy lento", "Bajo ataque", "Pocas opciones ofensivas"]
+      },
+      15: { 
+        stats: { HP: 65, Ataque: 90, Defensa: 40, "Ataque Esp.": 45, "Defensa Esp.": 80, Velocidad: 75 }, 
+        moves: ["Aguijón", "Doble Filo", "Pico Taladro", "Golpe Roca"], 
+        competitiveItems: ["Life Orb", "Choice Scarf", "Leftovers", "Orbe Asalto"], 
+        peso: "29.5 kg", 
+        altura: "1 m", 
+        evolucion: "Forma final - No evoluciona más", 
+        trivia: "Beedrill protege su territorio ferozmente.",
+        ability: "Punta Tóxica",
+        nature: "Jolly",
+        evs: "252 Ataque / 4 Def. Esp. / 252 Velocidad",
+        role: "Atacante físico / Barredor",
+        tier: "NU",
+        difficulty: 2,
+        strengths: ["Excelente velocidad", "Buen ataque físico", "Movimientos de bicho"],
+        weaknesses: ["Defensa baja", "Débil a fuego/roca", "Dependencia de velocidad"]
+      },
+      16: { 
+        stats: { HP: 40, Ataque: 45, Defensa: 40, "Ataque Esp.": 35, "Defensa Esp.": 35, Velocidad: 56 }, 
+        moves: ["Tornado", "Pico Taladro", "Ataque Rápido", "Viento Aciago"], 
+        competitiveItems: ["Focus Sash", "Faja Resistencia", "Tierra Sucia", "Peto Asalto"], 
+        peso: "2 kg", 
+        altura: "0.3 m", 
+        evolucion: "Evoluciona a Pidgeotto a nivel 18", 
+        trivia: "Pidgey usa sus alas para crear remolinos.",
+        ability: "Agudeza",
+        nature: "Tímido",
+        evs: "252 Velocidad / 252 Ataque Esp. / 4 Def. Esp.",
+        role: "Scout",
+        tier: "LC",
+        difficulty: 1,
+        strengths: ["Buena velocidad", "Movimientos tempranos", "Cobertura voladora"],
+        weaknesses: ["Estadísticas bajas", "Débil a roca/eléctrico", "Poca presión"]
+      },
+      17: { 
+        stats: { HP: 63, Ataque: 60, Defensa: 55, "Ataque Esp.": 50, "Defensa Esp.": 50, Velocidad: 71 }, 
+        moves: ["Tornado", "Pico Taladro", "Ataque Rápido", "Viento Aciago"], 
+        competitiveItems: ["Choice Specs", "Leftovers", "Orbe Vida", "Faja Resistencia"], 
+        peso: "30 kg", 
+        altura: "1.09 m", 
+        evolucion: "Evoluciona a Pidgeot a nivel 36", 
+        trivia: "Pidgeotto es muy territorial.",
+        ability: "Agudeza",
+        nature: "Tímido",
+        evs: "252 Velocidad / 252 Ataque Esp. / 4 Def. Esp.",
+        role: "Especial Atacante",
+        tier: "NU",
+        difficulty: 2,
+        strengths: ["Velocidad decente", "Movimientos voladores", "Buen HP"],
+        weaknesses: ["Defensa baja", "Débil a roca", "Ataque especial moderado"]
+      },
+      18: { 
+        stats: { HP: 83, Ataque: 80, Defensa: 75, "Ataque Esp.": 70, "Defensa Esp.": 70, Velocidad: 101 }, 
+        moves: ["Tornado", "Pico Taladro", "Ataque Rápido", "Viento Aciago"], 
+        competitiveItems: ["Leftovers", "Rocky Helmet", "Orbe Asalto", "Choice Scarf"], 
+        peso: "39.5 kg", 
+        altura: "1.5 m", 
+        evolucion: "Forma final - No evoluciona más", 
+        trivia: "Pidgeot es el rey de los cielos.",
+        ability: "Agudeza",
+        nature: "Jolly",
+        evs: "252 Ataque / 4 Def. Esp. / 252 Velocidad",
+        role: "Atacante físico / Barredor",
+        tier: "UU",
+        difficulty: 3,
+        strengths: ["Excelente velocidad", "Bulk respetable", "Movimientos de cobertura"],
+        weaknesses: ["Débil a roca/eléctrico", "Ataque limitado", "Requiere EV training"]
+      },
+      19: { 
+        stats: { HP: 30, Ataque: 56, Defensa: 35, "Ataque Esp.": 25, "Defensa Esp.": 35, Velocidad: 72 }, 
+        moves: ["Placaje", "Ataque Rápido", "Golpe Roca", "Rugido"], 
+        competitiveItems: ["Focus Sash", "Life Orb", "Choice Scarf", "Peto Asalto"], 
+        peso: "3.5 kg", 
+        altura: "0.3 m", 
+        evolucion: "Evoluciona a Raticate a nivel 20", 
+        trivia: "Rattata es extremadamente rápido.",
+        ability: "Agujeta",
+        nature: "Jolly",
+        evs: "252 Ataque / 4 Def. Esp. / 252 Velocidad",
+        role: "Atacante físico / Scout",
+        tier: "LC",
+        difficulty: 1,
+        strengths: ["Excelente velocidad", "Buen ataque", "Movimientos rápidos"],
+        weaknesses: ["Muy bajo HP", "Frágil", "Dependencia de EV"]
+      },
+      20: { 
+        stats: { HP: 55, Ataque: 81, Defensa: 60, "Ataque Esp.": 50, "Defensa Esp.": 70, Velocidad: 97 }, 
+        moves: ["Ataque Rápido", "Golpe Roca", "Hipercolmillo", "Rugido"], 
+        competitiveItems: ["Life Orb", "Choice Scarf", "Leftovers", "Orbe Asalto"], 
+        peso: "18.5 kg", 
+        altura: "0.71 m", 
+        evolucion: "Forma final - No evoluciona más", 
+        trivia: "Raticate es inteligente y coordinado.",
+        ability: "Agujeta",
+        nature: "Jolly",
+        evs: "252 Ataque / 4 Def. Esp. / 252 Velocidad",
+        role: "Atacante físico / Barredor",
+        tier: "NU",
+        difficulty: 2,
+        strengths: ["Excelente velocidad", "Buen ataque físico", "Movimientos veloces"],
+        weaknesses: ["Defensa y HP moderados", "Débil a lucha", "Requiere velocidad"]
+      },
+      21: { 
+        stats: { HP: 40, Ataque: 60, Defensa: 30, "Ataque Esp.": 31, "Defensa Esp.": 31, Velocidad: 70 }, 
+        moves: ["Pico Taladro", "Ataque Rápido", "Rugido", "Tornado"], 
+        competitiveItems: ["Focus Sash", "Life Orb", "Peto Asalto", "Tierra Sucia"], 
+        peso: "2 kg", 
+        altura: "0.3 m", 
+        evolucion: "Evoluciona a Fearow a nivel 20", 
+        trivia: "Spearow es agresivo a pesar de su tamaño.",
+        ability: "Agudeza",
+        nature: "Jolly",
+        evs: "252 Ataque / 4 Def. Esp. / 252 Velocidad",
+        role: "Atacante físico",
+        tier: "LC",
+        difficulty: 2,
+        strengths: ["Buena velocidad", "Buen ataque", "Cobertura voladora"],
+        weaknesses: ["Defensa muy baja", "HP bajo", "Débil a roca/eléctrico"]
+      },
+      22: { 
+        stats: { HP: 65, Ataque: 90, Defensa: 65, "Ataque Esp.": 61, "Defensa Esp.": 61, Velocidad: 100 }, 
+        moves: ["Pico Taladro", "Ataque Rápido", "Viento Aciago", "Tornado"], 
+        competitiveItems: ["Life Orb", "Choice Scarf", "Leftovers", "Orbe Asalto"], 
+        peso: "38 kg", 
+        altura: "1.2 m", 
+        evolucion: "Forma final - No evoluciona más", 
+        trivia: "Fearow usa su pico para pescar desde el aire.",
+        ability: "Agudeza",
+        nature: "Jolly",
+        evs: "252 Ataque / 4 Def. Esp. / 252 Velocidad",
+        role: "Atacante físico / Barredor",
+        tier: "UU",
+        difficulty: 3,
+        strengths: ["Excelente velocidad", "Buen ataque", "Bulk respetable"],
+        weaknesses: ["Débil a roca/eléctrico", "Ataque limitado", "Movimientos específicos"]
+      },
+      23: { 
+        stats: { HP: 35, Ataque: 60, Defensa: 44, "Ataque Esp.": 40, "Defensa Esp.": 54, Velocidad: 55 }, 
+        moves: ["Constricción", "Aguijón", "Giga Impacto", "Mordisco"], 
+        competitiveItems: ["Life Orb", "Choice Scarf", "Orbe Asalto", "Tierra Sucia"], 
+        peso: "6.9 kg", 
+        altura: "2 m", 
+        evolucion: "Evoluciona a Arbok a nivel 22", 
+        trivia: "Ekans puede tragar Pokémon grandes.",
+        ability: "Derramaveneneno",
+        nature: "Jolly",
+        evs: "252 Ataque / 4 HP / 252 Velocidad",
+        role: "Atacante físico",
+        tier: "LC",
+        difficulty: 2,
+        strengths: ["Buen ataque", "Velocidad decente", "Movimientos de veneno"],
+        weaknesses: ["Defensa baja", "HP bajo", "Débil a tierra/psíquico"]
+      },
+      24: { 
+        stats: { HP: 60, Ataque: 95, Defensa: 69, "Ataque Esp.": 65, "Defensa Esp.": 79, Velocidad: 80 }, 
+        moves: ["Constricción", "Mordisco", "Giga Impacto", "Terremoto"], 
+        competitiveItems: ["Life Orb", "Choice Scarf", "Leftovers", "Orbe Asalto"], 
+        peso: "65 kg", 
+        altura: "3.5 m", 
+        evolucion: "Forma final - No evoluciona más", 
+        trivia: "Los patrones en su espalda intimidan a sus enemigos.",
+        ability: "Derramaveneneno",
+        nature: "Jolly",
+        evs: "252 Ataque / 4 Def. Esp. / 252 Velocidad",
+        role: "Atacante físico / Pivot",
+        tier: "NU",
+        difficulty: 3,
+        strengths: ["Excelente ataque", "Buena velocidad", "Bulk defensivo"],
+        weaknesses: ["Débil a tierra/psíquico", "Movimientos limitados", "Requiere setup"]
+      },
+      25: { 
+        stats: { HP: 35, Ataque: 55, Defensa: 40, "Ataque Esp.": 50, "Defensa Esp.": 50, Velocidad: 90 }, 
+        moves: ["Impactrueno", "Ataque Rápido", "Rayo", "Trueno"], 
+        competitiveItems: ["Life Orb", "Choice Scarf", "Leftovers", "Orbe Vida"], 
+        peso: "6 kg", 
+        altura: "0.41 m", 
+        evolucion: "Evoluciona a Raichu con Piedra Trueno", 
+        trivia: "Pikachu almacena energía eléctrica en sus mejillas.",
+        ability: "Electricidad Estática",
+        nature: "Tímido",
+        evs: "252 Ataque Esp. / 4 Def. Esp. / 252 Velocidad",
+        role: "Especial Atacante / Barredor",
+        tier: "NU",
+        difficulty: 2,
+        strengths: ["Excelente velocidad", "Bueno ataque especial", "Movimientos eléctricos"],
+        weaknesses: ["Bajo HP", "Frágil a tierra", "Dependencia de velocidad"]
+      }
+    };
+
+    const tierColors = {
+      "LC": "tier-lc",
+      "NU": "tier-nu",
+      "UU": "tier-uu",
+      "OU": "tier-ou",
+      "Ubers": "tier-ubers"
+    };
+
+    const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#a855f7', '#ec4899'];
+    const grid = document.getElementById('pokemon-grid');
+    const overlay = document.getElementById('modal-overlay');
+    const modalContent = document.getElementById('modal-content');
+    const closeButton = document.getElementById('modal-close');
+
+    function getColor(id) {
+      return colors[(id - 1) % colors.length];
+    }
+
+    function getPokemonImageUrl(id) {
+      return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/${id}.png`;
+    }
+
+    function getStatColor(value) {
+      if (value >= 70) return 'high';
+      if (value >= 40) return 'medium';
+      return 'low';
+    }
+
+    function getStatPercentage(value) {
+      return Math.min((value / 120) * 100, 100);
+    }
+
+    function generateDifficultyStars(level) {
+      return Array(level).fill('⭐').join('');
+    }
+
+    function renderCards() {
+      grid.innerHTML = pokemons.map(pokemon => `
+        <div class="card" onclick="openModal(${pokemon.id})">
+          <span class="number">#${String(pokemon.id).padStart(3, '0')}</span>
+          <img src="${getPokemonImageUrl(pokemon.id)}" alt="${pokemon.name}" class="pokemon-image" onerror="this.style.display='none'">
+          <h2>${pokemon.name}</h2>
+          <p class="type">${pokemon.type}</p>
+          <p class="description">${pokemon.description}</p>
+        </div>
+      `).join('');
+    }
+
+    function openModal(pokemonId) {
+      const pokemon = pokemons.find(p => p.id === pokemonId);
+      const details = detailsById[pokemonId] || { stats: {}, moves: [], competitiveItems: [], peso: 'N/A', altura: 'N/A', evolucion: 'N/A', trivia: 'N/A', ability: 'N/A', nature: 'N/A', evs: 'N/A', role: 'N/A', tier: 'N/A', difficulty: 1, strengths: [], weaknesses: [] };
+
+      const statsHtml = Object.entries(details.stats).map(([name, value]) => {
+        const percentage = getStatPercentage(value);
+        const color = getStatColor(value);
+        return `
+          <div class="stat-item">
+            <div class="stat-name"><span>${name}</span><span>${value}</span></div>
+            <div class="stat-bar"><div class="stat-fill ${color}" style="width: ${percentage}%"></div></div>
+          </div>
+        `;
+      }).join('');
+
+      const movesHtml = details.moves.map(move => `<li>${move}</li>`).join('');
+      const itemsHtml = details.competitiveItems.map(item => `<li>${item}</li>`).join('');
+      const strengthsHtml = details.strengths.map(str => `<li>${str}</li>`).join('');
+      const weaknessesHtml = details.weaknesses.map(weak => `<li>${weak}</li>`).join('');
+      
+      const tierClass = tierColors[details.tier] || 'tier-nu';
+
+      modalContent.innerHTML = `
+        <div class="modal-header">
+          <img src="${getPokemonImageUrl(pokemon.id)}" alt="${pokemon.name}" class="pokemon-image-modal" onerror="this.style.display='none'">
+          <div>
+            <h2 class="modal-title">${pokemon.name}</h2>
+            <p class="modal-subtitle">${pokemon.type}</p>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-box">
+            <div class="info-label">Altura</div>
+            <div class="info-value">${details.altura}</div>
+          </div>
+          <div class="info-box">
+            <div class="info-label">Peso</div>
+            <div class="info-value">${details.peso}</div>
+          </div>
+        </div>
+
+        <div class="section-title">⚡ Análisis Competitivo</div>
+        <div class="competitive-grid">
+          <div class="competitive-box">
+            <label>Habilidad Recomendada</label>
+            <value>${details.ability}</value>
+          </div>
+          <div class="competitive-box">
+            <label>Naturaleza</label>
+            <value>${details.nature}</value>
+          </div>
+          <div class="competitive-box">
+            <label>EVs Recomendados</label>
+            <value>${details.evs}</value>
+          </div>
+          <div class="competitive-box">
+            <label>Rol Competitivo</label>
+            <value><span class="role-badge">${details.role}</span></value>
+          </div>
+        </div>
+
+        <div class="section-title">📊 Tier e Información</div>
+        <div style="margin: 1rem 0;">
+          <span class="tier-badge ${tierClass}">Tier: ${details.tier}</span>
+          <div class="difficulty-indicator" style="margin-top: 0.8rem;">
+            <span>Dificultad de Uso:</span> <span class="difficulty-star">${generateDifficultyStars(details.difficulty)}</span>
+          </div>
+        </div>
+
+        <div class="section-title">📈 Estadísticas</div>
+        ${statsHtml}
+
+        <div class="section-title">💪 Fortalezas</div>
+        <ul class="strengths-list">${strengthsHtml}</ul>
+
+        <div class="section-title">⚠️ Debilidades</div>
+        <ul class="weaknesses-list">${weaknessesHtml}</ul>
+
+        <div class="section-title">🔄 Evolución</div>
+        <div class="evolution-info">${details.evolucion}</div>
+
+        <div class="section-title">💡 Trivia</div>
+        <div class="trivia-info">${details.trivia}</div>
+
+        <div class="section-title">🎯 Movimientos</div>
+        <ul class="moves-list">${movesHtml}</ul>
+
+        <div class="section-title">🛡️ Items Competitivos</div>
+        <ul class="items-list">${itemsHtml}</ul>
+      `;
+
+      overlay.classList.add('active');
+    }
+
+    function closeModal() {
+      overlay.classList.remove('active');
+    }
+
+    closeButton.addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    renderCards();
+  </script>
+</body>
+</html>
